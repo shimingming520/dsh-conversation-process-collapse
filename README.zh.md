@@ -33,15 +33,17 @@
 
 ## 启用 / 禁用
 
-Web bundle 默认启用。要在自己的 profile 中管理，请在你的 `$DSH_HOME/profiles/<profile>` 补丁（或 bundle）中加入或移除：
+一旦发布，本插件可以像 `dsh-context` 一样安装：
 
-```yaml
-plugins:
-  - id: ui-turn-process-collapse
-    name: '@deepseek-ai/dsh-client-ui-turn-process-collapse'
+```sh
+dsh plugin --profile web add @deepseek-ai/dsh-client-ui-turn-process-collapse
+# 更新
+dsh plugin --profile web update '@deepseek-ai/dsh-client-ui-turn-process-collapse@latest'
 ```
 
-移除该条目即整体关闭该表面；聊天视图自动回退到平铺流程。
+`dsh plugin` 在 profile 目录上转发 pnpm 并协调 bundle 层栈——包的 `dsh.bundle.patch`（见 [cordis.patch.yml](cordis.patch.yml)）正是让它无需构建即加入 `dsh web` 的原因。
+
+**发布状态：** 该包还未发布到 npm。它还要求上游对话包声明了扩展点（`conversation.chat.processGroup` + 可选 `chatFlowPartition` 服务）；当前已发布的 `next` tag 不包含它，因此只有上游把两者都发布后 `dsh plugin add` 才可用。在此之前源码随 `deepseek-harness` 发布（`packages/client/ui-turn-process-collapse`，Web bundle 默认启用）。
 
 ## 本地开发
 

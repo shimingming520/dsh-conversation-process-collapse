@@ -33,15 +33,26 @@ It rides the chat view's extension point instead of replacing it:
 
 ## Enable / disable
 
-The Web bundle enables it by default. To manage it in your own profile, add or remove the entry in your `$DSH_HOME/profiles/<profile>` patch (or bundle):
+The plugin is installable exactly like `dsh-context` once published:
 
-```yaml
-plugins:
-  - id: ui-turn-process-collapse
-    name: '@deepseek-ai/dsh-client-ui-turn-process-collapse'
+```sh
+dsh plugin --profile web add @deepseek-ai/dsh-client-ui-turn-process-collapse
+# update
+dsh plugin --profile web update '@deepseek-ai/dsh-client-ui-turn-process-collapse@latest'
 ```
 
-Removing the entry turns the entire surface off; the chat view falls back to the plain flow.
+`dsh plugin` forwards to pnpm in the profile directory and reconciles the
+bundle layer stack — the package's `dsh.bundle.patch` (see
+[cordis.patch.yml](cordis.patch.yml)) is what makes it join `dsh web` with no
+build step.
+
+**Publishing status:** the package is not on npm yet. It also requires the
+upstream conversation package that declares the extension point
+(`conversation.chat.processGroup` + the optional `chatFlowPartition` service);
+the currently published `next` tag does not carry it, so `dsh plugin add` only
+works after upstream publishes both. In the meanwhile the source ships inside
+`deepseek-harness` (`packages/client/ui-turn-process-collapse`, enabled by
+default in the Web bundle).
 
 ## Local development
 
