@@ -1,0 +1,8 @@
+# Enable the turn process collapse plugin in a dsh Web profile (or bundle).
+#
+# Put this entry into your $DSH_HOME/profiles/<profile>/cordis.yml (or the
+# bundle patch layer) and ensure the package is installed:
+#   pnpm add @deepseek-ai/dsh-client-ui-turn-process-collapse
+plugins:
+  - id: ui-turn-process-collapse
+    name: '@deepseek-ai/dsh-client-ui-turn-process-collapse'

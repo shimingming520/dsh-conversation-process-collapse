@@ -1,0 +1,33 @@
+/* Process group: the header matches Think/tool row chrome; the expanded body
+   nests its member rows under the header with a tighter rhythm so the trail
+   reads as one unit. */
+
+.group {
+  min-width: 0;
+}
+
+.row {
+  overflow: hidden;
+}
+
+.chevron {
+  color: var(--dsw-alias-label-secondary);
+}
+
+.title {
+  font-weight: 400;
+}
+
+.count {
+  flex: none;
+  margin-left: 8px;
+  font: var(--dsw-font-xs-13);
+  color: var(--dsw-alias-label-caption);
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px 0 4px 22px;
+}
