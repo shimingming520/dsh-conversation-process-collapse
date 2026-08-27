@@ -28,7 +28,7 @@ undeclared-slot error.
 
 ## Model Experience
 
-None — this plugin only folds already-rendered conversation rows in the browser; nothing here reaches a model request.
+None, as this package folds already-rendered conversation rows in the browser without altering model requests, Tool execution, or session events.
 
 #### KV Cache effect
 
