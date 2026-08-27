@@ -20,7 +20,7 @@ Design notes:
 The canonical home is upstream: `packages/client/ui-turn-process-collapse` in `deepseek-harness` (shipped by default in the Web bundle; compose it out of `cordis.yml` to disable). This repository is a **mirror of the plugin source plus enablement guidance**, for standalone review, issue tracking, and vendoring.
 
 - Upstream package: `@deepseek-ai/dsh-client-ui-turn-process-collapse`
-- Source mirror: [`plugin/`](plugin/)
+- Source mirror: [`src/`](src/), prebuilt [`lib/`](lib/)
 - Design note: [upstream Agent Note](https://github.com/deepseek-ai/deepseek-harness/blob/master/.agents/notes/implemented/feature/2026-08-27-web-turn-process-collapse.md)
 
 ## Architecture

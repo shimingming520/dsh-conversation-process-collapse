@@ -20,7 +20,7 @@
 正式归宿在上游：`deepseek-harness` 的 `packages/client/ui-turn-process-collapse`（Web bundle 默认启用；在 `cordis.yml` 中组合出去即可禁用）。本仓库是**插件源码镜像 + 启用指南**，用于独立审阅、问题跟踪与 vendoring。
 
 - 上游包名：`@deepseek-ai/dsh-client-ui-turn-process-collapse`
-- 源码镜像：[`plugin/`](plugin/)
+- 源码镜像：[`src/`](src/)、预构建 [`lib/`](lib/)
 - 设计说明：[上游 Agent Note](https://github.com/deepseek-ai/deepseek-harness/blob/master/.agents/notes/implemented/feature/2026-08-27-web-turn-process-collapse.md)
 
 ## 架构
@@ -41,7 +41,7 @@ dsh plugin --profile web add github:shimingming520/dsh-conversation-process-coll
 dsh plugin --profile web update 'github:shimingming520/dsh-conversation-process-collapse@latest'
 ```
 
-`dsh plugin` 在 profile 目录上转发 pnpm 并协调 bundle 层栈——包的 `dsh.bundle.patch`（见 [cordis.patch.yml](cordis.patch.yml)）加上预构建的 `plugin/lib/` 让它**无需构建**即可加入 `dsh web`。发布到 npm 后同一命令换裸包名：
+`dsh plugin` 在 profile 目录上转发 pnpm 并协调 bundle 层栈——包的 `dsh.bundle.patch`（见 [cordis.patch.yml](cordis.patch.yml)）加上预构建的 `lib/` 让它**无需构建**即可加入 `dsh web`。发布到 npm 后同一命令换裸包名：
 
 ```sh
 dsh plugin --profile web add dsh-conversation-process-collapse
@@ -51,12 +51,7 @@ dsh plugin --profile web add dsh-conversation-process-collapse
 
 ## 本地开发
 
-[`plugin/`](plugin/) 下的镜像是完整的 client 插件包（类型检查、打包、测试均针对上游 workspace 设计）：
-
-```sh
-# 在 deepseek-harness 检出内
-cp -r plugin/* packages/client/ui-turn-process-collapse/
-```
+本仓库是可安装产物加完整源码镜像。重建 `lib/` 或运行测试请在 `deepseek-harness` 检出内进行——上游包位于 `packages/client/ui-turn-process-collapse`（`pnpm --filter @deepseek-ai/dsh-client-ui-turn-process-collapse build`），构建产物可拷回本仓库。
 
 ## License
 
