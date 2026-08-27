@@ -31,28 +31,38 @@ It rides the chat view's extension point instead of replacing it:
 2. **Hole** — the chat view renders partitioner `process-group` rows through the `conversation.chat.processGroup` slot; the slot's fallback is the plain fully-expanded member list, so an absent plugin returns the conversation to today's one-row-per-node flow at zero cost.
 3. **Split rendering** — one optional owner field (`assistantSurface`) lets the keyed chat-node renderer draw a settled closing step's reasoning inside the group and its text outside. It is inert while no partitioner exists.
 
-## Enable / disable
+## Install / update for other users and machines
 
-The plugin is installable exactly like `dsh-context` once published:
+The repository is a standalone installable bundle, exactly like `dsh-context`.
+From any DeepSeek Harness installation (registry, npm, or a git checkout):
 
 ```sh
-dsh plugin --profile web add @deepseek-ai/dsh-client-ui-turn-process-collapse
+dsh plugin --profile web add github:shimingming520/dsh-conversation-process-collapse
 # update
-dsh plugin --profile web update '@deepseek-ai/dsh-client-ui-turn-process-collapse@latest'
+dsh plugin --profile web update 'github:shimingming520/dsh-conversation-process-collapse@latest'
 ```
 
 `dsh plugin` forwards to pnpm in the profile directory and reconciles the
 bundle layer stack — the package's `dsh.bundle.patch` (see
-[cordis.patch.yml](cordis.patch.yml)) is what makes it join `dsh web` with no
-build step.
+[cordis.patch.yml](cordis.patch.yml)) plus the prebuilt `plugin/lib/` are what
+make it join `dsh web` with **no build step** (the `prepare` script rebuilds
+for source checkouts). Once published on npm the same command takes the bare
+package name:
 
-**Publishing status:** the package is not on npm yet. It also requires the
-upstream conversation package that declares the extension point
-(`conversation.chat.processGroup` + the optional `chatFlowPartition` service);
-the currently published `next` tag does not carry it, so `dsh plugin add` only
-works after upstream publishes both. In the meanwhile the source ships inside
-`deepseek-harness` (`packages/client/ui-turn-process-collapse`, enabled by
-default in the Web bundle).
+```sh
+dsh plugin --profile web add dsh-conversation-process-collapse
+```
+
+> **Runtime prerequisite:** the conversation package must declare the
+> extension point this plugin fills — `conversation.chat.processGroup` + the
+> optional `chatFlowPartition` service in
+> `@deepseek-ai/dsh-client-ui-conversation`. That landed in upstream master
+> after npm's current `next` tag (0.1.1-rc.2), so the git install above works
+> against a profile that resolves a newer upstream (or the upstream source
+> checkout); until upstream publishes the extension point, profiles that pull
+> the npm `next` tag will refuse the undeclared slot at load. Upstream also
+> ships this plugin in-tree by default (`packages/client/ui-turn-process-collapse`),
+> so a current `deepseek-harness` checkout needs no install at all.
 
 ## Local development
 
