@@ -31,19 +31,23 @@
 2. **席位** —— 聊天视图将分区器的 `process-group` 行经 `conversation.chat.processGroup` 渲染；席位 fallback 是完整展开的成员列表，因此插件缺席时对话自动回到逐行平铺，零成本。
 3. **拆分渲染** —— 一个可选 owner 字段（`assistantSurface`）让 keyed chat-node 渲染器把已结束收尾步骤的推理画进组内、文字留在组外；没有分区器时它完全不生效。
 
-## 启用 / 禁用
+## 让其他用户 / 机器安装与更新
 
-一旦发布，本插件可以像 `dsh-context` 一样安装：
+本仓库是独立可安装的 bundle，与 `dsh-context` 相同。在任意 DeepSeek Harness 安装（registry、npm 或源码检出）中：
 
 ```sh
-dsh plugin --profile web add @deepseek-ai/dsh-client-ui-turn-process-collapse
+dsh plugin --profile web add github:shimingming520/dsh-conversation-process-collapse
 # 更新
-dsh plugin --profile web update '@deepseek-ai/dsh-client-ui-turn-process-collapse@latest'
+dsh plugin --profile web update 'github:shimingming520/dsh-conversation-process-collapse@latest'
 ```
 
-`dsh plugin` 在 profile 目录上转发 pnpm 并协调 bundle 层栈——包的 `dsh.bundle.patch`（见 [cordis.patch.yml](cordis.patch.yml)）正是让它无需构建即加入 `dsh web` 的原因。
+`dsh plugin` 在 profile 目录上转发 pnpm 并协调 bundle 层栈——包的 `dsh.bundle.patch`（见 [cordis.patch.yml](cordis.patch.yml)）加上预构建的 `plugin/lib/` 让它**无需构建**即可加入 `dsh web`。发布到 npm 后同一命令换裸包名：
 
-**发布状态：** 该包还未发布到 npm。它还要求上游对话包声明了扩展点（`conversation.chat.processGroup` + 可选 `chatFlowPartition` 服务）；当前已发布的 `next` tag 不包含它，因此只有上游把两者都发布后 `dsh plugin add` 才可用。在此之前源码随 `deepseek-harness` 发布（`packages/client/ui-turn-process-collapse`，Web bundle 默认启用）。
+```sh
+dsh plugin --profile web add dsh-conversation-process-collapse
+```
+
+> **运行前提：** 对话包必须声明本插件所填充的扩展点——`@deepseek-ai/dsh-client-ui-conversation` 中的 `conversation.chat.processGroup` 席位与可选 `chatFlowPartition` 服务。该扩展点已在上游 master 落地，但在 npm 当前 `next` tag（0.1.1-rc.2）之后；因此上面的 git 安装适用于解析到更新版上游（或上游源码检出）的 profile；在上游发布扩展点之前，拉取 npm `next` tag 的 profile 会在加载时报未声明席位错误。上游同时默认内置该插件（`packages/client/ui-turn-process-collapse`），当前 `deepseek-harness` 检出无需任何安装。
 
 ## 本地开发
 
