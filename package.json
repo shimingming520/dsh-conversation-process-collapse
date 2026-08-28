@@ -1,7 +1,7 @@
 {
   "name": "dsh-conversation-process-collapse",
   "description": "Collapses each settled turn's process rows into one disclosure in the DeepSeek Harness Web conversation",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "publishConfig": {
     "access": "public"
   },

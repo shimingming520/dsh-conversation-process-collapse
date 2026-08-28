@@ -30,11 +30,26 @@ installs is registered in the profile as
 
 The command is a pnpm forwarder over the profile directory; it then reconciles
 the profile's bundle layer stack, so the plugin joins `dsh web` without a
-build step. It requires the upstream conversation package that declares the
-extension point (`conversation.chat.processGroup` hole + optional
-`chatFlowPartition` service) — the published `next` tag must carry it;
-composing this row against an older upstream fails at load with a duplicate or
-undeclared-slot error.
+build step.
+
+**Activate today (one profile override):** the fold only activates while the
+conversation package declares the extension point this plugin fills
+(`conversation.chat.processGroup` hole + optional `chatFlowPartition`
+service). The published upstream `next` tag predates it, so activate it now
+with the companion fork
+`@shimingming520/dsh-client-ui-conversation@0.1.1-rc.3` — add to
+`$DSH_HOME/profiles/web/pnpm-workspace.yaml`:
+
+```yaml
+overrides:
+  '@deepseek-ai/dsh-client-ui-conversation': 'npm:@shimingming520/dsh-client-ui-conversation@0.1.1-rc.3'
+```
+
+Then restart `dsh web`. Against an upstream **without** the declaration the
+plugin registers through `slots.inject` (declaration-aware) and silently does
+nothing — install succeeds, the web keeps running, the chat stays plain.
+Once upstream publishes a version carrying the extension point, remove the
+`overrides` entry — no other change needed.
 
 ## After install
 
