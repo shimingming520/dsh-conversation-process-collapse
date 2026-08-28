@@ -190,4 +190,68 @@ describe('partitionChatFlow', () => {
       { kind: 'node', key: 'r2', surface: 'content' },
     ])
   })
+
+  it('promotes generated images from an image-tool result card onto the visible result row', () => {
+    const turn = CLOSED(1)
+    const imageRef = { id: 'gen-1', kind: 'image' } as never
+    const imageTool = node('img', 'tool-call', location(turn, 1), {
+      root: {
+        kind: 'tool-result', callId: 'g1', call: { name: 'image_gen', argsRaw: '{}' },
+        content: [{ type: 'image', attachment: imageRef }],
+        isError: false, callView: null, resultView: null, subCalls: [],
+      },
+    }, 20)
+    const result = node('r', 'assistant-step', location(turn, 2), assistantData(text('图片已生成。')), 30)
+    const store = new Map([[imageTool.key, imageTool], [result.key, result]])
+
+    const rows = partitionChatFlow([imageTool.key, result.key], key => store.get(key))
+
+    expect(rows).toEqual([
+      { kind: 'process-group', turn: 1, durationMs: 99_000, rows: [{ key: 'img', surface: 'full' }] },
+      { kind: 'node', key: 'r', surface: 'full', images: [imageRef] },
+    ])
+  })
+
+  it('promotes generated images to the image row when the turn has no text result', () => {
+    const turn = CLOSED(1)
+    const imageRef = { id: 'gen-2', kind: 'image' } as never
+    const imageTool = node('img', 'tool-call', location(turn, 1), {
+      root: {
+        kind: 'tool-result', callId: 'g2', call: { name: 'image_gen', argsRaw: '{}' },
+        content: [{ type: 'image', attachment: imageRef }],
+        isError: false, callView: null, resultView: null, subCalls: [],
+      },
+    }, 20)
+    const tail = node('tail', 'turn-tail', location(turn), { seq: 20 }, 30)
+    const store = new Map([[imageTool.key, imageTool], [tail.key, tail]])
+
+    const rows = partitionChatFlow([imageTool.key, tail.key], key => store.get(key))
+
+    expect(rows).toEqual([
+      // No content step carries the result, so no group forms at all and the
+      // image row itself shows the promoted images.
+      { kind: 'node', key: 'img', surface: 'full', images: [imageRef] },
+      { kind: 'node', key: 'tail', surface: 'full' },
+    ])
+  })
+
+  it('still promotes images declared through a resultView image card when content carries none', () => {
+    const turn = CLOSED(1)
+    const imageRef = { id: 'gen-3', kind: 'image' } as never
+    const imageTool = node('img', 'tool-call', location(turn, 1), {
+      root: {
+        kind: 'tool-result', callId: 'g3', call: { name: 'image_gen', argsRaw: '{}' }, content: [],
+        isError: false, callView: null, resultView: { card: 'image', images: [imageRef] }, subCalls: [],
+      },
+    }, 20)
+    const result = node('r', 'assistant-step', location(turn, 2), assistantData(text('图好了')), 30)
+    const store = new Map([[imageTool.key, imageTool], [result.key, result]])
+
+    const rows = partitionChatFlow([imageTool.key, result.key], key => store.get(key))
+
+    expect(rows).toEqual([
+      { kind: 'process-group', turn: 1, durationMs: 99_000, rows: [{ key: 'img', surface: 'full' }] },
+      { kind: 'node', key: 'r', surface: 'full', images: [imageRef] },
+    ])
+  })
 })

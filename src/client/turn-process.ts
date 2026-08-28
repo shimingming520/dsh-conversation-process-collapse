@@ -1,7 +1,29 @@
+import type { ImageAttachmentRef } from '@deepseek-ai/dsh-attachment'
 import type { AssistantBlock, ChatConversationViewNode } from '@deepseek-ai/dsh-client-runtime/client'
 import type {
   AssistantSurface, ChatFlowPartitioner, ChatFlowRow, ChatNode, ChatProcessMember,
 } from '@deepseek-ai/dsh-client-ui-conversation/client'
+
+/**
+ * The image-card result shape an image-generation tool declares through its
+ * `resultView` (for example dsh-imagegen's `card: 'image'` with `images`).
+ * Identified structurally, so this plugin never imports another plugin's
+ * declared card union.
+ */
+interface ImageResultCard {
+  readonly card: 'image'
+  readonly images: readonly ImageAttachmentRef[]
+}
+
+/** Read an image result card off a settled tool result view, if present. */
+function imageCardOf(view: unknown): ImageResultCard | undefined {
+  if (typeof view !== 'object' || view === null) return undefined
+  const record = view as Record<string, unknown>
+  if (record.card !== 'image') return undefined
+  return Array.isArray(record.images)
+    ? { card: 'image', images: record.images }
+    : undefined
+}
 
 /** Node kinds that are always their turn's process noise rather than results. */
 const PROCESS_KINDS: ReadonlySet<string> = new Set(['tool-call', 'model-retry', 'workflow-run'])
@@ -19,8 +41,34 @@ function hasReasoning(blocks: readonly AssistantBlock[]): boolean {
   return blocks.some(block => block.kind === 'reasoning' && block.text.trim() !== '')
 }
 
-function nodeRow(key: string, surface: AssistantSurface): ChatFlowRow {
-  return { kind: 'node', key, surface }
+/** Extract promoted images from a settled tool result row.
+ *  Reads durable image blocks from the result `content` first (the shape any
+ *  tool with image output shares — dsh-imagegen returns its attachments
+ *  there), then falls back to a structurally recognized `resultView` image
+ *  card, so no tool-specific card union needs importing. */
+function imageRefsFor(value: ChatConversationViewNode): readonly ImageAttachmentRef[] {
+  if (value.kind !== 'tool-call') return []
+  const root = (value as ChatNode<'tool-call'>).data.root
+  if (!('kind' in root)) return []
+  const fromContent = root.content.flatMap(block =>
+    block.type === 'image' ? [block.attachment] : [])
+  return fromContent.length > 0 ? fromContent : (imageCardOf(root.resultView)?.images ?? [])
+}
+
+function nodeRow(
+  key: string,
+  surface: AssistantSurface,
+  turn: number | undefined,
+  byTurn: ReadonlyMap<number, TurnPlan>,
+): ChatFlowRow {
+  if (turn === undefined) return { kind: 'node', key, surface }
+  const plan = byTurn.get(turn)
+  const images = plan !== undefined && (plan.resultKey === key || (plan.resultKey === undefined && plan.imageKey === key))
+    ? plan.images
+    : undefined
+  return images !== undefined && images.length > 0
+    ? { kind: 'node', key, surface, images }
+    : { kind: 'node', key, surface }
 }
 
 interface TurnPlan {
@@ -29,6 +77,10 @@ interface TurnPlan {
   /** Last content-bearing assistant-step key of the turn, when one exists. */
   resultKey: string | undefined
   durationMs: number | null
+  /** Generated images from settled image-tool results in this turn. */
+  images: readonly ImageAttachmentRef[]
+  /** Last image-bearing tool row, used when the turn has no content step to carry the result. */
+  imageKey: string | undefined
 }
 
 interface ProcessGroup {
@@ -43,6 +95,10 @@ interface ProcessGroup {
  * assistant-step (otherwise grouping would hide the turn's only answer):
  * its non-result rows fold into one collapsible group at the first member's
  * position, and the result step splits there when it also carries reasoning.
+ * Image outputs from settled tool results — durable image blocks in the
+ * result content, or a structurally recognized `resultView` image card — are
+ * promoted to the turn's visible result row so they appear in the final
+ * answer instead of staying hidden inside the collapsed process.
  * Open and unknown-status turns keep today's ungrouped flow so live
  * streaming never moves rows.
  * @param order - visible Chat Node keys in flow order.
@@ -65,10 +121,19 @@ export function partitionChatFlow(
       keys: [],
       resultKey: undefined,
       durationMs: null,
+      images: [],
+      imageKey: undefined,
     }
     current.keys.push(key)
     if (value.kind === 'assistant-step' && hasResultContent((value as ChatNode<'assistant-step'>).data.blocks)) {
       current.resultKey = key
+    }
+    if (value.kind === 'tool-call') {
+      const generated = imageRefsFor(value)
+      if (generated.length > 0) {
+        current.images = [...current.images, ...generated]
+        current.imageKey = key
+      }
     }
     const { start, end } = location.turn
     if (start !== undefined && end !== undefined) current.durationMs = end.time - start.time
@@ -112,7 +177,7 @@ export function partitionChatFlow(
         // owns a standalone content face: the content row wins its own
         // position, the group carries the reasoning face.
         if (key === group.splitKey) {
-          rows.push(nodeRow(key, 'content'))
+          rows.push(nodeRow(key, 'content', turn, byTurn))
           continue
         }
         if (group.rows.some(row => row.key === key)) {
@@ -123,7 +188,7 @@ export function partitionChatFlow(
         }
       }
     }
-    rows.push(nodeRow(key, 'full'))
+    rows.push(nodeRow(key, 'full', turn, byTurn))
   }
   return rows
 }

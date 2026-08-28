@@ -1,82 +1,46 @@
-# dsh-conversation-process-collapse
+# @deepseek-ai/dsh-client-ui-turn-process-collapse
 
-Turn process collapse for the [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) Web conversation — an optional client plugin. Once a turn closes, every process row (intermediate narration, Think rows, tool cards, retry status, workflow runs) folds into ONE collapsed disclosure header, leaving the flow as **user message → collapsed process header → final answer → turn footer**. Expanding the header recovers the complete step trail in original order.
+English | [中文](README.zh.md)
 
-```
-⚡ Processed in 1m 23s · 66 steps ▼   ← click to expand
-     ✓ Bash   ✓ Think …               ← the 66 process rows, in order
-I've finished …                       ← the final answer stays visible
-```
+Settled-turn process folding for the Web conversation: once a turn closes, every process row — intermediate narration, Think rows, tool cards, retry status, workflow runs — collapses into one disclosure header (`Processed in {duration} · {n} steps`, duration omitted when a boundary is out of the window) at the turn's first process position, while the closing content message and the turn-tail stay in the flow. The closing step splits: its reasoning hides inside the group, its text stays visible as the answer; expanding the header mounts the member rows fresh and recovers the trail in original order. A turn groups only when it is closed AND has a content-bearing assistant step — tool-only turns and live streaming keep the plain flow, so an answer or the running progress is never hidden.
 
-Design notes:
+Generated images are part of the result too: image-tool rows whose settled
+`resultView` declares an image card (recognized structurally, e.g.
+dsh-imagegen's `card: 'image'`) have their images promoted onto the turn's
+visible result row, so the artwork appears beside the final answer instead of
+staying hidden inside the group.
 
-- **Live turns stay open.** While a turn runs, Think/tool rows stream as usual; the collapse happens at `turn/end` only.
-- **Tool-only turns stay ungrouped.** If a turn has no text answer, collapsing would hide its only output.
-- **The closing step splits.** Its reasoning hides inside the group; its text (the answer) stays in the flow.
-- **Pure presentation.** No runtime, event, or wire change; session logs and replay are untouched. The partition is a pure function over the ordered chat nodes.
+It rides the chat view's extension point instead of replacing it: this plugin `ctx.provide`s the optional `chatFlowPartition` service (the chat view reads it via `ctx.get`, the [ui-deliverables pattern](../ui-deliverables/README.md)) and registers the `conversation.chat.processGroup` hole. Composing this plugin out of cordis.yml turns the entire surface off — the chat view falls back to today's one-row-per-node flow at zero cost.
 
-## Where it lives
+## Install / Update as a standalone plugin
 
-The canonical home is upstream: `packages/client/ui-turn-process-collapse` in `deepseek-harness` (shipped by default in the Web bundle; compose it out of `cordis.yml` to disable). This repository is a **mirror of the plugin source plus enablement guidance**, for standalone review, issue tracking, and vendoring.
-
-- Upstream package: `@deepseek-ai/dsh-client-ui-turn-process-collapse`
-- Source mirror: [`src/`](src/), prebuilt [`lib/`](lib/)
-- Design note: [upstream Agent Note](https://github.com/deepseek-ai/deepseek-harness/blob/master/.agents/notes/implemented/feature/2026-08-27-web-turn-process-collapse.md)
-
-## Architecture
-
-It rides the chat view's extension point instead of replacing it:
-
-1. **Service** — the plugin `ctx.provide`s the optional `chatFlowPartition` service; the chat view reads it via `ctx.get` (the same optional-service pattern `ui-deliverables` uses for `chatFileMentions`).
-2. **Hole** — the chat view renders partitioner `process-group` rows through the `conversation.chat.processGroup` slot; the slot's fallback is the plain fully-expanded member list, so an absent plugin returns the conversation to today's one-row-per-node flow at zero cost.
-3. **Split rendering** — one optional owner field (`assistantSurface`) lets the keyed chat-node renderer draw a settled closing step's reasoning inside the group and its text outside. It is inert while no partitioner exists.
-
-## Install / update for other users and machines
-
-The repository is a standalone installable bundle, exactly like `dsh-context`.
-From any DeepSeek Harness installation (registry, npm, or a git checkout):
+The package ships an installable bundle declaration (`dsh.bundle.patch` +
+[`cordis.patch.yml`](cordis.patch.yml)), so once published it installs from any
+DeepSeek Harness installation exactly like any profile plugin:
 
 ```sh
-dsh plugin --profile web add github:shimingming520/dsh-conversation-process-collapse
+dsh plugin --profile web add @deepseek-ai/dsh-client-ui-turn-process-collapse
 # update
-dsh plugin --profile web update 'github:shimingming520/dsh-conversation-process-collapse@latest'
+dsh plugin --profile web update '@deepseek-ai/dsh-client-ui-turn-process-collapse@latest'
 ```
 
-`dsh plugin` forwards to pnpm in the profile directory and reconciles the
-bundle layer stack — the package's `dsh.bundle.patch` (see
-[cordis.patch.yml](cordis.patch.yml)) plus the prebuilt `plugin/lib/` are what
-make it join `dsh web` with **no build step** (the `prepare` script rebuilds
-for source checkouts). Once published on npm the same command takes the bare
-package name:
+The command is a pnpm forwarder over the profile directory; it then reconciles
+the profile's bundle layer stack, so the plugin joins `dsh web` without a
+build step. It requires the upstream conversation package that declares the
+extension point (`conversation.chat.processGroup` hole + optional
+`chatFlowPartition` service) — the published `next` tag must carry it;
+composing this row against an older upstream fails at load with a duplicate or
+undeclared-slot error.
 
-```sh
-dsh plugin --profile web add dsh-conversation-process-collapse
-```
+## Model Experience
 
-> **Runtime prerequisite (fail-safe):** the fold only activates while the
-> conversation package declares the extension point this plugin fills —
-> `conversation.chat.processGroup` + the optional `chatFlowPartition` service
-> in `@deepseek-ai/dsh-client-ui-conversation`. That landed in upstream master
-> after npm's current `next` tag (0.1.1-rc.2). The plugin registers through
-> `slots.inject`, which is declaration-aware: against an upstream without the
-> declaration the registration silently does not run, `chatFlowPartition`
-> stays unprovided, and the chat view simply renders the plain
-> one-row-per-node flow — **install succeeds, the web keeps running, no error
-> is shown**. Against a newer upstream (or the upstream source checkout) the
-> fold activates. Upstream also ships this plugin in-tree by default
-> (`packages/client/ui-turn-process-collapse`), so a current
-> `deepseek-harness` checkout needs no install at all.
+None, as this package folds already-rendered conversation rows in the browser without altering model requests, Tool execution, or session events.
 
-## Local development
+#### KV Cache effect
 
-The mirror under [`plugin/`](plugin/) is a full client plugin package (type-checks, bundles, and tests against the upstream workspace):
+None; this package neither assembles nor sends a provider request.
 
-```sh
-# inside a deepseek-harness checkout
-cp -r plugin/* packages/client/ui-turn-process-collapse/
-pnpm --filter @deepseek-ai/dsh-client-ui-turn-process-collapse test  # see repo notes
-```
+## Known Limitations and Deferred Work
 
-## License
-
-MIT — see [LICENSE](LICENSE). Copyright (c) 2026 DeepSeek.
+- **Process-group expansion is not persisted** — a group's expanded state is component-local, so switching conversation tabs and back returns each historical process group to its collapsed default.
+- **The partitioner runs on the visible window only** — grouping decisions derive from the chat nodes in the loaded event window; a turn whose `turn/end` boundary is out of the window stays ungrouped until paging brings the boundary in.

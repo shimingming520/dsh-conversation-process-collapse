@@ -6,6 +6,10 @@ import type { ChatFlowPartitioner, ChatFlowRow } from '@deepseek-ai/dsh-client-u
  * assistant-step (otherwise grouping would hide the turn's only answer):
  * its non-result rows fold into one collapsible group at the first member's
  * position, and the result step splits there when it also carries reasoning.
+ * Image outputs from settled tool results — durable image blocks in the
+ * result content, or a structurally recognized `resultView` image card — are
+ * promoted to the turn's visible result row so they appear in the final
+ * answer instead of staying hidden inside the collapsed process.
  * Open and unknown-status turns keep today's ungrouped flow so live
  * streaming never moves rows.
  * @param order - visible Chat Node keys in flow order.
