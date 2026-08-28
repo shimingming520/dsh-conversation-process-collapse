@@ -53,16 +53,19 @@ package name:
 dsh plugin --profile web add dsh-conversation-process-collapse
 ```
 
-> **Runtime prerequisite:** the conversation package must declare the
-> extension point this plugin fills — `conversation.chat.processGroup` + the
-> optional `chatFlowPartition` service in
-> `@deepseek-ai/dsh-client-ui-conversation`. That landed in upstream master
-> after npm's current `next` tag (0.1.1-rc.2), so the git install above works
-> against a profile that resolves a newer upstream (or the upstream source
-> checkout); until upstream publishes the extension point, profiles that pull
-> the npm `next` tag will refuse the undeclared slot at load. Upstream also
-> ships this plugin in-tree by default (`packages/client/ui-turn-process-collapse`),
-> so a current `deepseek-harness` checkout needs no install at all.
+> **Runtime prerequisite (fail-safe):** the fold only activates while the
+> conversation package declares the extension point this plugin fills —
+> `conversation.chat.processGroup` + the optional `chatFlowPartition` service
+> in `@deepseek-ai/dsh-client-ui-conversation`. That landed in upstream master
+> after npm's current `next` tag (0.1.1-rc.2). The plugin registers through
+> `slots.inject`, which is declaration-aware: against an upstream without the
+> declaration the registration silently does not run, `chatFlowPartition`
+> stays unprovided, and the chat view simply renders the plain
+> one-row-per-node flow — **install succeeds, the web keeps running, no error
+> is shown**. Against a newer upstream (or the upstream source checkout) the
+> fold activates. Upstream also ships this plugin in-tree by default
+> (`packages/client/ui-turn-process-collapse`), so a current
+> `deepseek-harness` checkout needs no install at all.
 
 ## Local development
 

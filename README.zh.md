@@ -47,7 +47,7 @@ dsh plugin --profile web update 'github:shimingming520/dsh-conversation-process-
 dsh plugin --profile web add dsh-conversation-process-collapse
 ```
 
-> **运行前提：** 对话包必须声明本插件所填充的扩展点——`@deepseek-ai/dsh-client-ui-conversation` 中的 `conversation.chat.processGroup` 席位与可选 `chatFlowPartition` 服务。该扩展点已在上游 master 落地，但在 npm 当前 `next` tag（0.1.1-rc.2）之后；因此上面的 git 安装适用于解析到更新版上游（或上游源码检出）的 profile；在上游发布扩展点之前，拉取 npm `next` tag 的 profile 会在加载时报未声明席位错误。上游同时默认内置该插件（`packages/client/ui-turn-process-collapse`），当前 `deepseek-harness` 检出无需任何安装。
+> **运行前提（安全失败）：** 只有对话包声明了本插件所填充的扩展点——`@deepseek-ai/dsh-client-ui-conversation` 中的 `conversation.chat.processGroup` 席位与可选 `chatFlowPartition` 服务——折叠才会生效。该扩展点已在上游 master 落地，但在 npm 当前 `next` tag（0.1.1-rc.2）之后。本插件经 `slots.inject` 注册，它是声明感知的：面对没有该声明的上游，注册会静默不执行、`chatFlowPartition` 不提供、聊天视图直接渲染平铺流程——**安装成功、web 照常运行、不显示任何错误**。面对新版上游（或上游源码检出）折叠即生效。上游同时默认内置该插件（`packages/client/ui-turn-process-collapse`），当前 `deepseek-harness` 检出无需任何安装。
 
 ## 本地开发
 
