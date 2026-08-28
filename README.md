@@ -37,12 +37,12 @@ conversation package declares the extension point this plugin fills
 (`conversation.chat.processGroup` hole + optional `chatFlowPartition`
 service). The published upstream `next` tag predates it, so activate it now
 with the companion fork
-`@shimingming520/dsh-client-ui-conversation@0.1.1-rc.3` — add to
+`@shimingming/dsh-client-ui-conversation@0.1.1-rc.3` — add to
 `$DSH_HOME/profiles/web/pnpm-workspace.yaml`:
 
 ```yaml
 overrides:
-  '@deepseek-ai/dsh-client-ui-conversation': 'npm:@shimingming520/dsh-client-ui-conversation@0.1.1-rc.3'
+  '@deepseek-ai/dsh-client-ui-conversation': 'npm:@shimingming/dsh-client-ui-conversation@0.1.1-rc.3'
 ```
 
 Then restart `dsh web`. Against an upstream **without** the declaration the

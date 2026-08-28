@@ -22,11 +22,11 @@ npm 包名为 `dsh-conversation-process-collapse`；它安装到 profile 中的 
 
 该命令是 profile 目录上的 pnpm 转发器，随后会协调 profile 的 bundle 层栈，插件无需构建即可加入 `dsh web`。
 
-**今天就能激活（profile 一行 override）：** 只有对话包声明了本插件所填充的扩展点（`conversation.chat.processGroup` 席位 + 可选 `chatFlowPartition` 服务）折叠才会生效。已发布的官方 `next` tag 不包含它，因此现在请用配套 fork 包 `@shimingming520/dsh-client-ui-conversation@0.1.1-rc.3` 激活——在 `$DSH_HOME/profiles/web/pnpm-workspace.yaml` 加入：
+**今天就能激活（profile 一行 override）：** 只有对话包声明了本插件所填充的扩展点（`conversation.chat.processGroup` 席位 + 可选 `chatFlowPartition` 服务）折叠才会生效。已发布的官方 `next` tag 不包含它，因此现在请用配套 fork 包 `@shimingming/dsh-client-ui-conversation@0.1.1-rc.3` 激活——在 `$DSH_HOME/profiles/web/pnpm-workspace.yaml` 加入：
 
 ```yaml
 overrides:
-  '@deepseek-ai/dsh-client-ui-conversation': 'npm:@shimingming520/dsh-client-ui-conversation@0.1.1-rc.3'
+  '@deepseek-ai/dsh-client-ui-conversation': 'npm:@shimingming/dsh-client-ui-conversation@0.1.1-rc.3'
 ```
 
 然后重启 `dsh web`。面对**没有**该声明的上游，插件经 `slots.inject`（声明感知）静默不执行——安装成功、web 照常运行、聊天保持平铺。官方发布带扩展点的版本后，删除 `overrides` 条目即可，无需其它改动。
