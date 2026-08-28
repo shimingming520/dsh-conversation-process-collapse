@@ -1,9 +1,8 @@
 # Bundle patch layer for the standalone plugin: the row loads the package's
 # main entry as the host half (a plain Cordis plugin); the `dsh.client`
 # declaration makes the web app load its ./client bundle as the browser half.
-# The `conversation.chat.processGroup` hole and the optional
-# `chatFlowPartition` service live in @deepseek-ai/dsh-client-ui-conversation
-# (next: 0.1.1-rc.2+); do not install this row against an older upstream.
+# This is the pure-DOM build: it does not require the upstream
+# conversation.chat.processGroup extension point.
 - insert:
     - id: ui-turn-process-collapse
-      name: '@deepseek-ai/dsh-client-ui-turn-process-collapse'
+      name: 'dsh-conversation-process-collapse'

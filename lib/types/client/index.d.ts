@@ -1,17 +1,11 @@
 /**
- * Turn process collapse plugin, browser half: provides the chat view's
- * optional `chatFlowPartition` service and registers the process-group
- * disclosure into the `conversation.chat.processGroup` hole. Composing this
- * plugin out of cordis.yml turns the surface off entirely — the chat view
- * falls back to the plain one-row-per-node flow at zero cost.
+ * Turn process collapse plugin, browser half: a pure DOM implementation that
+ * watches the rendered chat flow and collapses settled turns' process rows.
  */
-import type { ClientContext } from '@deepseek-ai/dsh-client-runtime/client';
-/** Required services for the service, slot, and dictionary registrations. */
+/** Client plugin has no required services. */
 export declare const inject: string[];
 /**
- * Client plugin body: register the dictionary, the group hole, and the
- * partitioner service.
+ * Client plugin body: start the DOM collapse controller.
  * @param ctx - client root context.
  */
-export declare function apply(ctx: ClientContext): void;
-//# sourceMappingURL=index.d.ts.map
+export declare function apply(ctx: any): void;

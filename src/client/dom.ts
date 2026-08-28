@@ -1,11 +1,4 @@
-/* Turn-process-collapse DOM plugin (standalone, no upstream extension point).
- * Pure frontend implementation: watches the DSH chat flow and collapses closed
- * turns' process rows behind a disclosure row. Works with the stock
- * @deepseek-ai/dsh-client-ui-conversation package; no fork/override required.
- */
-window.__ModuleLoader__.load({
-  id: 'dsh-conversation-process-collapse',
-  factory: (require) => {
+
     'use strict'
     const exports = {}
 
@@ -406,6 +399,5 @@ window.__ModuleLoader__.load({
       ctx.effect(() => controller.stop())
     }
 
-    return exports
-  }
-})
+export const inject = exports.inject
+export const apply = exports.apply

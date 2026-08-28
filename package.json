@@ -1,7 +1,7 @@
 {
   "name": "dsh-conversation-process-collapse",
   "description": "Collapses each settled turn's process rows into one disclosure in the DeepSeek Harness Web conversation",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "publishConfig": {
     "access": "public"
   },
@@ -33,11 +33,7 @@
       "patch": "./cordis.patch.yml"
     },
     "client": {
-      "inject": [
-        "@deepseek-ai/dsh-client-locale",
-        "@deepseek-ai/dsh-client-runtime",
-        "@deepseek-ai/dsh-client-ui-conversation"
-      ],
+      "inject": [],
       "platform": "web"
     }
   },
@@ -56,7 +52,6 @@
     "lib/invariant.js",
     "lib/client.js",
     "lib/types/**/*.d.ts",
-    "lib/client.js.map",
     "cordis.patch.yml",
     "README.md",
     "LICENSE"

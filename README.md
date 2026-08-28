@@ -2,15 +2,14 @@
 
 English | [中文](README.zh.md)
 
-Settled-turn process folding for the Web conversation: once a turn closes, every process row — intermediate narration, Think rows, tool cards, retry status, workflow runs — collapses into one disclosure header (`Processed in {duration} · {n} steps`, duration omitted when a boundary is out of the window) at the turn's first process position, while the closing content message and the turn-tail stay in the flow. The closing step splits: its reasoning hides inside the group, its text stays visible as the answer; expanding the header mounts the member rows fresh and recovers the trail in original order. A turn groups only when it is closed AND has a content-bearing assistant step — tool-only turns and live streaming keep the plain flow, so an answer or the running progress is never hidden.
+Settled-turn process folding for the Web conversation: once a turn closes, every process row — intermediate narration, Think rows, tool cards, retry status, workflow runs — collapses at the DOM layer into one expandable disclosure (`Processed in {duration} · {n} steps`, duration omitted when a boundary is out of the window) at the turn's first process position, while the closing content message and the turn-tail stay visible. Reasoning inside the final answer is also hidden with the group; its visible text remains. A turn folds only when it is closed AND has a content-bearing assistant step — tool-only turns and live streaming keep the plain flow, so an answer or the running progress is never hidden.
 
-Generated images are part of the result too: image-tool rows whose settled
-`resultView` declares an image card (recognized structurally, e.g.
-dsh-imagegen's `card: 'image'`) have their images promoted onto the turn's
-visible result row, so the artwork appears beside the final answer instead of
-staying hidden inside the group.
+The DOM version currently focuses on process-row folding while keeping the
+final answer visible. The earlier React-slot feature that promotes generated
+images beside the final answer has not yet been ported to the DOM
+implementation and can be added later as an enhancement.
 
-It rides the chat view's extension point instead of replacing it: this plugin `ctx.provide`s the optional `chatFlowPartition` service (the chat view reads it via `ctx.get`, the [ui-deliverables pattern](../ui-deliverables/README.md)) and registers the `conversation.chat.processGroup` hole. Composing this plugin out of cordis.yml turns the entire surface off — the chat view falls back to today's one-row-per-node flow at zero cost.
+The implementation is a pure frontend DOM plugin: it watches `[data-chat-flow]`, recognizes closed turns, and collapses process rows into an expandable disclosure while keeping the final answer visible. It does not require the unmerged `conversation.chat.processGroup` extension point, a profile override, or a fork of the official conversation package.
 
 ## Install / Update as a standalone plugin
 
@@ -24,32 +23,15 @@ dsh plugin --profile web add dsh-conversation-process-collapse
 dsh plugin --profile web update 'dsh-conversation-process-collapse@latest'
 ```
 
-The npm package name is `dsh-conversation-process-collapse`; the bundle it
-installs is registered in the profile as
-`@deepseek-ai/dsh-client-ui-turn-process-collapse`.
+The npm package name is `dsh-conversation-process-collapse`; it is both the
+profile bundle row and the browser client package.
 
 The command is a pnpm forwarder over the profile directory; it then reconciles
 the profile's bundle layer stack, so the plugin joins `dsh web` without a
 build step.
 
-**Activate today (one profile override):** the fold only activates while the
-conversation package declares the extension point this plugin fills
-(`conversation.chat.processGroup` hole + optional `chatFlowPartition`
-service). The published upstream `next` tag predates it, so activate it now
-with the companion fork
-`@shimingming/dsh-client-ui-conversation@0.1.1-rc.3` — add to
-`$DSH_HOME/profiles/web/pnpm-workspace.yaml`:
-
-```yaml
-overrides:
-  '@deepseek-ai/dsh-client-ui-conversation': 'npm:@shimingming/dsh-client-ui-conversation@0.1.1-rc.3'
-```
-
-Then restart `dsh web`. Against an upstream **without** the declaration the
-plugin registers through `slots.inject` (declaration-aware) and silently does
-nothing — install succeeds, the web keeps running, the chat stays plain.
-Once upstream publishes a version carrying the extension point, remove the
-`overrides` entry — no other change needed.
+**No override is needed.** After installing, restart `dsh web` and hard-refresh
+the browser (`Cmd / Ctrl + Shift + R`) to load the new client bundle.
 
 ## After install
 
@@ -69,5 +51,5 @@ None; this package neither assembles nor sends a provider request.
 
 ## Known Limitations and Deferred Work
 
-- **Process-group expansion is not persisted** — a group's expanded state is component-local, so switching conversation tabs and back returns each historical process group to its collapsed default.
-- **The partitioner runs on the visible window only** — grouping decisions derive from the chat nodes in the loaded event window; a turn whose `turn/end` boundary is out of the window stays ungrouped until paging brings the boundary in.
+- **Expansion state is not persisted** — the open/closed state lives in memory, so switching conversation tabs or reloading the page returns each group to its collapsed default.
+- **The DOM pass runs on the rendered flow only** — the plugin can only see messages already mounted in the page; unloaded history boundaries are not folded until paging brings them in.
