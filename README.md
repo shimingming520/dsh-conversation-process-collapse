@@ -1,4 +1,4 @@
-# @deepseek-ai/dsh-client-ui-turn-process-collapse
+# dsh-conversation-process-collapse
 
 English | [中文](README.zh.md)
 
@@ -15,14 +15,18 @@ It rides the chat view's extension point instead of replacing it: this plugin `c
 ## Install / Update as a standalone plugin
 
 The package ships an installable bundle declaration (`dsh.bundle.patch` +
-[`cordis.patch.yml`](cordis.patch.yml)), so once published it installs from any
+[`cordis.patch.yml`](cordis.patch.yml)), so it installs from any
 DeepSeek Harness installation exactly like any profile plugin:
 
 ```sh
-dsh plugin --profile web add @deepseek-ai/dsh-client-ui-turn-process-collapse
+dsh plugin --profile web add dsh-conversation-process-collapse
 # update
-dsh plugin --profile web update '@deepseek-ai/dsh-client-ui-turn-process-collapse@latest'
+dsh plugin --profile web update 'dsh-conversation-process-collapse@latest'
 ```
+
+The npm package name is `dsh-conversation-process-collapse`; the bundle it
+installs is registered in the profile as
+`@deepseek-ai/dsh-client-ui-turn-process-collapse`.
 
 The command is a pnpm forwarder over the profile directory; it then reconciles
 the profile's bundle layer stack, so the plugin joins `dsh web` without a
@@ -31,6 +35,14 @@ extension point (`conversation.chat.processGroup` hole + optional
 `chatFlowPartition` service) — the published `next` tag must carry it;
 composing this row against an older upstream fails at load with a duplicate or
 undeclared-slot error.
+
+## After install
+
+After adding the package and restarting `dsh web`, settled turns in the Web conversation collapse their process rows into one disclosure header while the final answer stays visible:
+
+![Turn process collapse after install](https://raw.githubusercontent.com/shimingming520/dsh-conversation-process-collapse/main/docs/images/turn-process-collapse.png)
+
+If the plugin manager marks an unrelated npm package as “installed, not active” (`inert`), that is normal: only packages declaring `dsh.bundle` metadata enter the profile bundle layer and become profile plugins. This package declares `dsh.bundle`; after installing it, restart the DSH process and hard-refresh the browser (`Cmd / Ctrl + Shift + R`) so the new bundle layer is loaded.
 
 ## Model Experience
 

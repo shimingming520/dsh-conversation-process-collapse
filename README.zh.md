@@ -1,4 +1,4 @@
-# @deepseek-ai/dsh-client-ui-turn-process-collapse
+# dsh-conversation-process-collapse
 
 [English](README.md) | 中文
 
@@ -10,15 +10,25 @@ Web 对话的回合过程折叠：回合关闭后，所有过程行——中间�
 
 ## 作为独立插件安装 / 更新
 
-本包带有可安装的 bundle 声明（`dsh.bundle.patch` + [`cordis.patch.yml`](cordis.patch.yml)），因此一旦发布，就可以像任何 profile 插件一样从任意 DeepSeek Harness 安装中安装：
+本包带有可安装的 bundle 声明（`dsh.bundle.patch` + [`cordis.patch.yml`](cordis.patch.yml)），因此发布后可以直接像任何 profile 插件一样从任意 DeepSeek Harness 安装中安装：
 
 ```sh
-dsh plugin --profile web add @deepseek-ai/dsh-client-ui-turn-process-collapse
+dsh plugin --profile web add dsh-conversation-process-collapse
 # update
-dsh plugin --profile web update '@deepseek-ai/dsh-client-ui-turn-process-collapse@latest'
+dsh plugin --profile web update 'dsh-conversation-process-collapse@latest'
 ```
 
+npm 包名为 `dsh-conversation-process-collapse`；它安装到 profile 中的 bundle 注册名为 `@deepseek-ai/dsh-client-ui-turn-process-collapse`。
+
 该命令是 profile 目录上的 pnpm 转发器，随后会协调 profile 的 bundle 层栈，插件无需构建即可加入 `dsh web`。它要求上游对话包声明了扩展点（`conversation.chat.processGroup` 席位 + 可选 `chatFlowPartition` 服务）——已发布的 `next` tag 必须带上；把此行组合到旧版上游会在加载时报重复或未声明席位错误。
+
+## 安装后效果
+
+安装本包并重启 `dsh web` 后，Web 对话中已结束回合的过程行会收拢成一个 disclosure 头部，最终答案仍然保持可见：
+
+![回合过程折叠效果](https://raw.githubusercontent.com/shimingming520/dsh-conversation-process-collapse/main/docs/images/turn-process-collapse.png)
+
+如果插件管理界面把某个普通 npm 依赖标记为“已安装，未生效”（`inert`），这是正常现象：只有声明了 `dsh.bundle` 元数据的包才会进入 profile 的 bundle 层并作为插件生效。本包声明了 `dsh.bundle`；安装后请重启 DSH 进程，并在浏览器中硬刷新（`Cmd / Ctrl + Shift + R`）以加载新的 bundle 层。
 
 ## Model Experience
 
